@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Study Assistant</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #dbeafe, #f0f9ff);
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 25px;
+            color: #1e3a8a;
+            font-size: 50px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        #chatContainer {
+            width: 70%;
+            margin: 20px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15);
+            min-height: 500px;
+        }
+
+        #chatBox {
+            min-height: 400px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+        }
+
+        .user-message {
+            text-align: right;
+            background: #2563eb;
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 12px 0;
+            width: fit-content;
+            max-width: 70%;
+            margin-left: auto;
+            font-size: 18px;
+        }
+
+        .ai-message {
+            text-align: left;
+            background: #e0f2fe;
+            color: #111827;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 12px 0;
+            width: fit-content;
+            max-width: 70%;
+            font-size: 18px;
+        }
+
+        #inputArea {
+            display: flex;
+            gap: 10px;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 15px;
+            font-size: 17px;
+            border: 2px solid #93c5fd;
+            border-radius: 10px;
+            outline: none;
+        }
+
+        button {
+            padding: 15px 25px;
+            font-size: 17px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+            transform: scale(1.05);
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <h1>AI Study Assistant</h1>
+
+    <div id="chatContainer">
+
+        <div id="chatBox"></div>
+
+        <div id="inputArea">
+            <input type="text" id="userInput" placeholder="Ask any study-related question...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+
+    </div>
+
+    <script>
+
+        async function sendMessage() {
+
+            const inputField = document.getElementById("userInput");
+            const chatBox = document.getElementById("chatBox");
+
+            const question = inputField.value;
+
+            if (question.trim() === "") {
+                return;
+            }
+
+            // User Message
+            chatBox.innerHTML += `
+                <div class="user-message">
+                    <b>You:</b> ${question}
+                </div>
+            `;
+
+            inputField.value = "";
+
+            // Thinking Message
+            chatBox.innerHTML += `
+                <div class="ai-message" id="thinking">
+                    <i>Thinking...</i>
+                </div>
+            `;
+
+            try {
+
+                const response = await fetch("http://127.0.0.1:5000/ask", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        question: question
+                    })
+                });
+
+                const data = await response.json();
+
+                // Remove Thinking
+                document.getElementById("thinking").remove();
+
+                // AI Response
+                chatBox.innerHTML += `
+                    <div class="ai-message">
+                        <b>AI:</b> ${data.answer}
+                    </div>
+                `;
+
+            } catch (error) {
+
+                document.getElementById("thinking").remove();
+
+                chatBox.innerHTML += `
+                    <div class="ai-message" style="color:red;">
+                        Error connecting to backend.
+                    </div>
+                `;
+
+                console.error(error);
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
